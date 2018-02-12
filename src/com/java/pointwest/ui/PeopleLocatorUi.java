@@ -5,17 +5,27 @@ import java.util.List;
 import java.util.Scanner;
 
 import com.java.pointwest.bean.Employee;
+import com.java.pointwest.bean.Location;
 import com.java.pointwest.bean.Project;
 import com.java.pointwest.bean.Seat;
+import com.java.pointwest.bean.SeatMap;
 import com.java.pointwest.manager.EmployeeManager;
+import com.java.pointwest.manager.SeatMapManager;
+import com.java.pointwest.utils.PeopleLocatorConstants;
 
 public class PeopleLocatorUi {
 	Scanner myScanner = new Scanner(System.in);
 	EmployeeManager empMgr = new EmployeeManager();
+	SeatMapManager seatMapMgr = new SeatMapManager();
 	Employee employee;
 	Employee emp_login = new Employee();
 	List<Employee> employeeList = new ArrayList<Employee>();
+	List<SeatMap> seatMapList = new ArrayList<SeatMap>();
 
+	/**
+	 * method to ask user to login go to Home page if successful otherwise, ask to
+	 * login again
+	 */
 	public void displayLogin() {
 		System.out.println("-----");
 		System.out.println("LOGIN");
@@ -35,6 +45,11 @@ public class PeopleLocatorUi {
 		}
 	}
 
+	/**
+	 * display home page after successful login user will select from 3 options
+	 * 
+	 * @param employee
+	 */
 	public void displayHomePage(Employee employee) {
 		System.out.println("\n##HOME##");
 		System.out.println(
@@ -44,85 +59,126 @@ public class PeopleLocatorUi {
 		System.out.println("[2] View Seatplan");
 		System.out.println("[3] Logout");
 		System.out.print("Enter your choice: ");
-		int homePageUserInput = myScanner.nextInt();
-		displayHomeSubMenu(homePageUserInput);
+		String homePageUserInput = myScanner.next();
+		displayHomeSubMenu(homePageUserInput, employee);
 	}
 
-	public void displayHomeSubMenu(int homePageUserInput) {
+	/**
+	 * using the user input from displayHomePage, call this method to display the
+	 * new options
+	 * 
+	 * @param homePageUserInput
+	 */
+	public void displayHomeSubMenu(String homePageUserInput, Employee employee) {
 		switch (homePageUserInput) {
-		case 1:
+		case "1":
+			// call this method when option 1 is selected
 			displaySearchMenu();
 			break;
-		case 2:
+		case "2":
+			// call this method when option 2 is selected
 			displayViewSeatPlanMenu();
 			break;
-		case 3:
+		case "3":
+			// user will exit the application and will be asked to login again
 			System.out.println("Exit! Please login again");
 			displayLogin();
 			break;
 		default:
 			System.out.println("Please enter a valid input from 1 to 3 only!");
+			displayHomePage(employee);
 		}
 	}
 
-	public void displaySearchEmployee(int searchUserInput) {
-		String project_holder = "";
+	/**
+	 * based on user's input, navigate user to corresponding search option
+	 * 
+	 * @param searchUserInput
+	 */
+	public void displaySearchEmployee(String searchUserInput) {
+		// String project_holder = "";
 		switch (searchUserInput) {
-		case 1:
+		case "1":
+			// ask the user to enter employee id
 			System.out.println("\n##SEARCH - By Employee Id##");
 			System.out.print("Enter Employee Id: ");
 			String empIdUserInput = myScanner.next();
+			// call this method from manager to get employee based on user input and store
+			// to an object
 			employee = empMgr.displayEmployeeById(empIdUserInput);
 
-			for (Project project : employee.getProjects()) {
-				project_holder = project_holder + project.getName() + ",";
-			}
+			// store all projects of employee to a variable
+			// for (Project project : employee.getProjects()) {
+			// project_holder = project_holder + project.getName() + ",";
+			// }
 
-			displaySearchResultHeaderNames();
+			// display header names before printing search result
+			PeopleLocatorConstants.displaySearchResultHeaderNames();
+			// set seats of each employee as the loop counter
 			for (Seat seat : employee.getSeats()) {
+				// put NONE as value of local # if empty (employee has no local #)
 				if (seat.getLocal().isEmpty()) {
 					seat.setLocal("NONE");
 				}
-				System.out.println(employee.getId() + "|" + employee.getFirstname() + "|" + employee.getLastname() + "|"
+				// display employee info, location, seat and project(s)
+				System.out.print(employee.getId() + "|" + employee.getFirstname() + "|" + employee.getLastname() + "|"
 						+ seat.getId() + seat.getFloor_number() + "F" + seat.getQuadrant() + seat.getRow_number() + "-"
-						+ seat.getCol_number() + "|" + seat.getLocal() + "|" + employee.getShift() + "|"
-						+ project_holder);
+						+ seat.getCol_number() + "|" + seat.getLocal() + "|" + employee.getShift() + "|");
+				// + project_holder);
+				for (Project project : employee.getProjects()) {
+					System.out.print(project.getName() + ",");
+				}
+				System.out.println();
 			}
+			// call this method to ask user for next action after search result
 			displayNextActionAfterSearch();
 			break;
-		case 2:
+		case "2":
 			System.out.println("\n##SEARCH - By Employee's Lastname##");
+			// ask user to enter employee's last name
 			System.out.print("Enter Employee's Lastname: ");
 			String empLastNameUserInput = myScanner.next();
-			myScanner.nextLine();
+
+			// call method from manager to get list of employees based on user input and
+			// store to arraylist
+
 			employeeList = empMgr.displayEmployeeByLastName(empLastNameUserInput);
 
-			displaySearchResultHeaderNames();
+			// display header names before printing search result
+			PeopleLocatorConstants.displaySearchResultHeaderNames();
+
+			// set each employee as the outer loop counter
 			for (Employee employee : employeeList) {
+
 				for (Seat seat : employee.getSeats()) {
 					if (seat.getLocal().isEmpty()) {
 						seat.setLocal("NONE");
 					}
+					// display employee info, location, and seat
 					System.out.print(employee.getId() + "|" + employee.getFirstname() + "|" + employee.getLastname()
 							+ "|" + seat.getLocation().getId() + seat.getFloor_number() + "F" + seat.getQuadrant()
 							+ seat.getRow_number() + "-" + seat.getCol_number() + "|" + seat.getLocal() + "|"
 							+ employee.getShift() + "|");
+					// display all employee's project(s)
 					for (Project project : employee.getProjects()) {
 						System.out.print(project.getName() + ",");
 					}
 					System.out.println();
 				}
 			}
-
+			// call this method to ask user for next action after search result
 			displayNextActionAfterSearch();
 			break;
-		case 3:
+		case "3":
 			System.out.println("\n##SEARCH - By Project Name");
-			System.out.print("Enter Employee's Project: ");
+			// ask user to enter project name
+			System.out.print("Enter Project Name: ");
 			String empProjUserInput = myScanner.next();
+			//// call method from manager to get list of employees based on user input and
+			//// store to arraylist
 			employeeList = empMgr.displayEmployeeByProject(empProjUserInput);
 
-			displaySearchResultHeaderNames();
+			PeopleLocatorConstants.displaySearchResultHeaderNames();
 			for (Employee employee : employeeList) {
 				for (Seat seat : employee.getSeats()) {
 					if (seat.getLocal().isEmpty()) {
@@ -147,57 +203,131 @@ public class PeopleLocatorUi {
 		}
 	}
 
-	public void displayViewSeatPlan(int viewSeatPlanUserInput) {
+	/**
+	 * first version--- using user input, call this method to navigate user to the
+	 * view seat plan option public void displayViewSeatPlan(int
+	 * viewSeatPlanUserInput) { switch (viewSeatPlanUserInput) { case 1:
+	 * System.out.println("\n##VIEW SEATPLAN - By Location - Floor Level##"); //ask
+	 * the user to enter location System.out.print("Enter Location: "); String
+	 * locationUserInput = myScanner.next(); //ask the user to enter floor number
+	 * System.out.print("Enter Floor Level: "); int floorLevelUserInput =
+	 * myScanner.nextInt(); //call a method from manager to get a list of seats
+	 * based on location and floor employeeList =
+	 * empMgr.displaySeatPlanByLocationAndFloor(locationUserInput,
+	 * floorLevelUserInput); //display header names before printing result
+	 * displayViewSeatPlanHeaderNames(); //loop in each employee in the list for
+	 * (Employee employee : employeeList) { //print the employee name
+	 * System.out.print(employee.getLastname() + ", " + employee.getFirstname() +
+	 * "|"); //loop in each employee seat for (Seat seat : employee.getSeats()) {
+	 * //put NONE as value of local # if empty if (seat.getLocal().isEmpty()) {
+	 * seat.setLocal("NONE"); } //print seat location of each employee
+	 * System.out.println(seat.getLocation().getId() + seat.getFloor_number() + "F"
+	 * + seat.getQuadrant() + seat.getRow_number() + "-" + seat.getCol_number() + "
+	 * loc." + seat.getLocal()); } } //display next action
+	 * displayNextActionAfterViewSeatPlan(); break; case 2:
+	 * System.out.println("\n##VIEW SEATPLAN - By Quadrant##");
+	 * System.out.print("Enter Location: "); locationUserInput = myScanner.next();
+	 * System.out.print("Enter Floor Level: "); floorLevelUserInput =
+	 * myScanner.nextInt(); System.out.print("Enter quadrant: "); String
+	 * quadrantUserInput = myScanner.next(); employeeList =
+	 * empMgr.displaySeatPlanByLocationAndFloorAndQuadrant(locationUserInput,
+	 * floorLevelUserInput, quadrantUserInput); displayViewSeatPlanHeaderNames();
+	 * for (Employee employee : employeeList) {
+	 * System.out.print(employee.getLastname() + ", " + employee.getFirstname()
+	 * +"|"); for (Seat seat : employee.getSeats()) { if (seat.getLocal().isEmpty())
+	 * { seat.setLocal("NONE"); } System.out.println(seat.getLocation().getId() +
+	 * seat.getFloor_number() + "F" + seat.getQuadrant() + seat.getRow_number() +
+	 * "-" + seat.getCol_number() + " loc." + seat.getLocal()); } }
+	 * displayNextActionAfterViewSeatPlan(); break; default:
+	 * System.out.println("Please enter a valid input!"); } }
+	 * 
+	 */
+
+	public void displayViewSeatPlan(String viewSeatPlanUserInput) {
 		switch (viewSeatPlanUserInput) {
-		case 1:
+		case "1":
 			System.out.println("\n##VIEW SEATPLAN - By Location - Floor Level##");
 			System.out.print("Enter Location: ");
 			String locationUserInput = myScanner.next();
 			System.out.print("Enter Floor Level: ");
-			int floorLevelUserInput = myScanner.nextInt();
-			employeeList = empMgr.displaySeatPlanByLocationAndFloor(locationUserInput, floorLevelUserInput);
-			displayViewSeatPlanHeaderNames();
-			for (Employee employee : employeeList) {
-				System.out.print(employee.getLastname() + ", " + employee.getFirstname() + "|");
-				for (Seat seat : employee.getSeats()) {
-					if (seat.getLocal().isEmpty()) {
-						seat.setLocal("NONE");
-					}
-					System.out.println(seat.getLocation().getId() + seat.getFloor_number() + "F" + seat.getQuadrant()
-							+ seat.getRow_number() + "-" + seat.getCol_number() + " loc." + seat.getLocal());
+			String floorUserInput = myScanner.next();
+			seatMapList = seatMapMgr.getAllSeatsByFloorAndLocation(locationUserInput, floorUserInput);
+			displayViewSeatPlanHeaderNames(locationUserInput, floorUserInput);
+			for (SeatMap seatMap : seatMapList) {
+				if (seatMap.getSeat().getLocal().isEmpty()) {
+					seatMap.getSeat().setLocal("NONE");
 				}
+				if (seatMap.getEmployee().getId() == null) {
+					seatMap.getEmployee().setFirstname("N/A,");
+					seatMap.getEmployee().setLastname("");
+				}
+				if (seatMap.getSeat().getRow_number() == 1 && seatMap.getSeat().getCol_number() == 1) {
+					System.out.println(
+							"======================" + seatMap.getSeat().getQuadrant() + "======================");
+				}
+				System.out.print(seatMap.getSeat().getLocation().getId() + seatMap.getSeat().getFloor_number() + "F"
+						+ seatMap.getSeat().getQuadrant() + seatMap.getSeat().getRow_number() + "-"
+						+ seatMap.getSeat().getCol_number() + "|");
+				System.out
+						.print(seatMap.getEmployee().getLastname() + "," + seatMap.getEmployee().getFirstname() + "|");
+				System.out.print("loc." + seatMap.getSeat().getLocal());
+				if (seatMap.getSeat().getCol_number() == 3) {
+					System.out.println();
+				} else {
+					System.out.print(" || ");
+				}
+
 			}
 
 			displayNextActionAfterViewSeatPlan();
 			break;
-		case 2:
+		case "2":
 			System.out.println("\n##VIEW SEATPLAN - By Quadrant##");
 			System.out.print("Enter Location: ");
 			locationUserInput = myScanner.next();
 			System.out.print("Enter Floor Level: ");
-			floorLevelUserInput = myScanner.nextInt();
+			floorUserInput = myScanner.next();
 			System.out.print("Enter quadrant: ");
 			String quadrantUserInput = myScanner.next();
-			employeeList = empMgr.displaySeatPlanByLocationAndFloorAndQuadrant(locationUserInput, floorLevelUserInput,
+			seatMapList = seatMapMgr.getAllSeatsByFloorAndLocationAndQuadrant(locationUserInput, floorUserInput,
 					quadrantUserInput);
-			displayViewSeatPlanHeaderNames();
-			for (Employee employee : employeeList) {
-				System.out.print(employee.getLastname() + ", " + employee.getFirstname() +"|");
-				for (Seat seat : employee.getSeats()) {
-					if (seat.getLocal().isEmpty()) {
-						seat.setLocal("NONE");
-					}
-					System.out.println(seat.getLocation().getId() + seat.getFloor_number() + "F" + seat.getQuadrant()
-							+ seat.getRow_number() + "-" + seat.getCol_number() + " loc." + seat.getLocal());
+			displayViewSeatPlanHeaderNames(locationUserInput, floorUserInput);
+			System.out.println(" QUADRANT: " + quadrantUserInput);
+			for (SeatMap seatMap : seatMapList) {
+				if (seatMap.getSeat().getLocal().isEmpty()) {
+					seatMap.getSeat().setLocal("NONE");
 				}
+				if (seatMap.getEmployee().getId() == null) {
+					seatMap.getEmployee().setFirstname("N/A,");
+					seatMap.getEmployee().setLastname("");
+				}
+				if (seatMap.getSeat().getRow_number() == 1 && seatMap.getSeat().getCol_number() == 1) {
+					System.out.println(
+							"======================" + seatMap.getSeat().getQuadrant() + "======================");
+				}
+				System.out.print(seatMap.getSeat().getLocation().getId() + seatMap.getSeat().getFloor_number() + "F"
+						+ seatMap.getSeat().getQuadrant() + seatMap.getSeat().getRow_number() + "-"
+						+ seatMap.getSeat().getCol_number() + "|");
+				System.out
+						.print(seatMap.getEmployee().getLastname() + "," + seatMap.getEmployee().getFirstname() + "|");
+				System.out.print("loc." + seatMap.getSeat().getLocal());
+				if (seatMap.getSeat().getCol_number() == 3) {
+					System.out.println();
+				} else {
+					System.out.print(" || ");
+				}
+
 			}
+
 			displayNextActionAfterViewSeatPlan();
 			break;
 		default:
 			System.out.println("Please enter a valid input!");
+			displayViewSeatPlanMenu();
 		}
 	}
 
+	// display search options and ask for user input
 	public void displaySearchMenu() {
 		System.out.println("\n##SEARCH##");
 		System.out.println("MENU:");
@@ -205,7 +335,7 @@ public class PeopleLocatorUi {
 		System.out.println("[2]By Employee's Last Name");
 		System.out.println("[3]By Project");
 		System.out.print("Enter your choice: ");
-		int searchUserInput = myScanner.nextInt();
+		String searchUserInput = myScanner.next();
 		displaySearchEmployee(searchUserInput);
 	}
 
@@ -215,49 +345,50 @@ public class PeopleLocatorUi {
 		System.out.println("[1]By Location - Floor Level");
 		System.out.println("[2]By Quadrant");
 		System.out.print("Enter your choice: ");
-		int viewSeatPlanUserInput = myScanner.nextInt();
+		String viewSeatPlanUserInput = myScanner.next();
 		displayViewSeatPlan(viewSeatPlanUserInput);
 	}
 
-	public void displaySearchResultHeaderNames() {
-		System.out.println("----------------------------------------------------------");
-		System.out.println("EMPLOYEE ID|FIRSTNAME|LASTNAME|SEAT|LOCAL|SHIFT|PROJECT(S)");
-		System.out.println("----------------------------------------------------------");
-	}
-	
-	public void displayViewSeatPlanHeaderNames() {
-		System.out.println("------------------------------");
-		System.out.println("LASTNAME|FIRSTNAME|SEAT|LOCAL|");
-		System.out.println("------------------------------");
+	public void displayViewSeatPlanHeaderNames(String locationUserInput, String floorUserInput) {
+		Location location = new Location();
+		System.out.println("\n##VIEW SEATPLAN##");
+		System.out.print("LOCATION:" + locationUserInput);
+		System.out.print("[");
+		location = seatMapMgr.getLocationAddress(locationUserInput);
+		System.out.print(location.getAddress());
+		System.out.print("],");
+		System.out.print(" FLOOR:" + floorUserInput);
 	}
 
+	// display next action options after Search and ask for user input
 	public void displayNextActionAfterSearch() {
 		System.out.print("\nACTIONS: ");
 		System.out.print("[1] Search Again ");
 		System.out.println("[2] Home ");
 		System.out.print("Enter your choice : ");
-		int nextActionUserInput = myScanner.nextInt();
+		String nextActionUserInput = myScanner.next();
 		switch (nextActionUserInput) {
-		case 1:
+		case "1":
 			displaySearchMenu();
 			break;
-		case 2:
+		case "2":
 			displayHomePage(emp_login);
 			break;
 		}
 	}
 
+	// display next action options after View Seat Plan and ask for user input
 	public void displayNextActionAfterViewSeatPlan() {
 		System.out.print("\nACTIONS: ");
 		System.out.print("[1] View Seatplan again ");
 		System.out.println("[2] Home ");
 		System.out.print("Enter your choice : ");
-		int nextActionUserInput = myScanner.nextInt();
+		String nextActionUserInput = myScanner.next();
 		switch (nextActionUserInput) {
-		case 1:
+		case "1":
 			displayViewSeatPlanMenu();
 			break;
-		case 2:
+		case "2":
 			displayHomePage(emp_login);
 			break;
 		}
